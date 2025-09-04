@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skor Badminton</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    .setup-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #1e1e1e;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .setup-screen h1 {
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      text-align: center;
+    }
+
+    .team-setup {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .team-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .team-input-group label {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .team-input-group input {
+      padding: 15px;
+      border-radius: 12px;
+      border: 2px solid #3a3a3a;
+      background: #2a2a2a;
+      color: white;
+      font-size: 1.1rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .team-input-group input:focus {
+      border-color: #4caf50;
+    }
+
+    .start-button {
+      margin-top: 30px;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #4caf50;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .start-button:hover {
+      background: #45a049;
+    }
+
+    .main-screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .info-item {
+      background: #2a2a2a;
+      padding: 8px 15px;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .score-section {
+      flex: 3;
+      display: flex;
+      flex-direction: column;
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .scoreboard {
+      flex: 1;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .team {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      border-radius: 10px;
+      background: #333;
+      transition: background 0.3s;
+      min-height: 300px;
+      position: relative;
+    }
+
+    .team.winner {
+      background: #4caf50;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    }
+
+    .team.deuce {
+      background: #ff9800;
+      box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
+    }
+
+    .deuce-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff9800;
+      color: #000;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: none;
+    }
+
+    .team h2 {
+      font-size: 1.6rem;
+      margin-bottom: 15px;
+      text-align: center;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .team span {
+      font-size: 8rem;
+      font-weight: bold;
+      margin: 15px 0;
+      transition: all 0.3s ease;
+    }
+
+    .team span.highlight {
+      color: #4caf50;
+      transform: scale(1.1);
+    }
+
+    .team-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .team button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      min-width: 60px;
+    }
+
+    .add-score {
+      background: #4caf50 !important;
+    }
+
+    .add-score:hover {
+      background: #45a049 !important;
+      transform: translateY(-2px);
+    }
+
+    .subtract-score {
+      background: #f44336 !important;
+    }
+
+    .subtract-score:hover {
+      background: #d32f2f !important;
+      transform: translateY(-2px);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .controls button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #3a3a3a;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .controls button:hover {
+      background: #505050;
+    }
+
+    .reset-set {
+      background: #ff9800 !important;
+    }
+
+    .reset-set:hover {
+      background: #f57c00 !important;
+    }
+
+    .reset-all {
+      background: #f44336 !important;
+    }
+
+    .reset-all:hover {
+      background: #d32f2f !important;
+    }
+
+    .new-set {
+      background: #4caf50 !important;
+    }
+
+    .new-set:hover {
+      background: #45a049 !important;
+    }
+
+    .history-section {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      min-width: 250px;
+    }
+
+    .history-section h2 {
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    #history-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background: #333;
+      border-radius: 8px;
+    }
+
+    #history-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #history-content::-webkit-scrollbar-track {
+      background: #2a2a2a;
+      border-radius: 3px;
+    }
+
+    #history-content::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 3px;
+    }
+
+    #history-content::-webkit-scrollbar-thumb:hover {
+      background: #777;
+    }
+
+    #history ul {
+      list-style: none;
+    }
+
+    #history li {
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      background: #3a3a3a;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: background 0.3s;
+    }
+
+    #history li:hover {
+      background: #444;
+    }
+
+    .set-history {
+      background: #3a3a3a !important;
+      border-left: 3px solid #2196F3 !important;
+    }
+
+    .deuce-history {
+      background: #3a3a3a !important;
+      border-left: 3px solid #ff9800 !important;
+      color: #ff9800;
+      font-weight: bold;
+    }
+
+    .winner-history {
+      background: #3a3a3a !important;
+      border-left: 3px solid #4caf50 !important;
+      font-weight: bold;
+    }
+
+    .game-info-display {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+
+    .notification {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4caf50;
+      padding: 12px 25px;
+      border-radius: 8px;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.5s;
+      z-index: 1001;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .notification.deuce {
+      background: #ff9800;
+    }
+
+    .notification.winner {
+      background: #4caf50;
+    }
+
+    @media (max-width: 1024px) {
+      .team span {
+        font-size: 6rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+      }
+      
+      .score-section {
+        flex: 2;
+      }
+      
+      .history-section {
+        flex: 1;
+        min-width: auto;
+      }
+      
+      .scoreboard {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .team {
+        min-height: auto;
+        width: 100%;
+      }
+      
+      .team span {
+        font-size: 5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-screen {
+        padding: 5px;
+      }
+      
+              #history-content {
+        max-height: 200px;
+        min-height: 120px;
+      }
+      
+      .team span {
+        font-size: 4rem;
+      }
+      
+      .team h2 {
+        font-size: 1.3rem;
+        min-height: 40px;
+      }
+      
+      .team button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        min-width: 50px;
+      }
+      
+      .controls button {
+        padding: 8px 15px;
+        font-size: 0.8rem;
+      }
+      
+      .info-item {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+      
+      .notification {
+        font-size: 0.9rem;
+        padding: 10px 20px;
+        top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div class="setup-screen" id="setupScreen">
+    <h1>Setup Pertandingan Badminton</h1>
+    <div class="team-setup">
+      <div class="team-input-group">
+        <label for="teamAInput">Nama Tim A</label>
+        <input type="text" id="teamAInput" placeholder="Masukkan nama tim A" autocomplete="off">
+      </div>
+      <div class="team-input-group">
+        <label for="teamBInput">Nama Tim B</label>
+        <input type="text" id="teamBInput" placeholder="Masukkan nama tim B" autocomplete="off">
+      </div>
+      <button class="start-button" onclick="startGame()">Mulai Pertandingan</button>
+    </div>
+  </div>
+
+  <!-- Main Game Screen -->
+  <div class="main-screen" id="mainScreen">
+    <div class="header">
+      <h1>Skor Badminton</h1>
+      <div class="game-info-display">
+        <div class="info-item">Set: <span id="setNumber">1</span></div>
+        <div class="info-item">Sets Tim A: <span id="setsA">0</span></div>
+        <div class="info-item">Sets Tim B: <span id="setsB">0</span></div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="score-section">
+        <div class="scoreboard">
+          <div class="team" id="teamA">
+            <div class="deuce-indicator" id="deuceA">DEUCE</div>
+            <h2 id="nameA">Tim A</h2>
+            <span id="scoreA">0</span>
+            <div class="team-buttons">
+              <button class="add-score" onclick="addScore('A')">+1</button>
+              <button class="subtract-score" onclick="subtractScore('A')">-1</button>
+            </div>
+          </div>
+          <div class="team" id="teamB">
+            <div class="deuce-indicator" id="deuceB">DEUCE</div>
+            <h2 id="nameB">Tim B</h2>
+            <span id="scoreB">0</span>
+            <div class="team-buttons">
+              <button class="add-score" onclick="addScore('B')">+1</button>
+              <button class="subtract-score" onclick="subtractScore('B')">-1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="new-set" onclick="newSet()" id="newSetBtn" style="display: none;">Set Baru</button>
+          <button class="reset-set" onclick="resetSet()">Reset Set</button>
+          <button class="reset-all" onclick="resetAll()">Reset Semua</button>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <h2>Riwayat Pertandingan</h2>
+        <div id="history-content">
+          <div id="history">
+            <ul></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification" id="notification"></div>
+
+  <script>
+    let scores = { A: 0, B: 0 };
+    let setNumber = 1;
+    let setsWon = { A: 0, B: 0 };
+    let gameOver = false;
+    let teamNames = { A: "Tim A", B: "Tim B" };
+    let matchHistory = [];
+    let deuceMode = false;
+
+    function startGame() {
+      const teamAInput = document.getElementById('teamAInput');
+      const teamBInput = document.getElementById('teamBInput');
+
+      if (teamAInput.value.trim() === '' || teamBInput.value.trim() === '') {
+        alert('Harap masukkan nama kedua tim!');
+        return;
+      }
+
+      teamNames.A = teamAInput.value.trim();
+      teamNames.B = teamBInput.value.trim();
+
+      document.getElementById('nameA').textContent = teamNames.A;
+      document.getElementById('nameB').textContent = teamNames.B;
+
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('mainScreen').style.display = 'flex';
+      
+      // Initialize game
+      scores = { A: 0, B: 0 };
+      setNumber = 1;
+      setsWon = { A: 0, B: 0 };
+      gameOver = false;
+      deuceMode = false;
+      matchHistory = [];
+      
+      updateScoreboard();
+      updateSetInfo();
+      updateDeuceDisplay();
+      updateHistoryDisplay();
+      
+      addToHistory(`🏸 Pertandingan dimulai: ${teamNames.A} vs ${teamNames.B}`);
+    }
+
+    function addScore(team) {
+      if (gameOver) return;
+
+      scores[team]++;
+      updateScoreboard();
+      animateScore(team);
+      addToHistory(`${teamNames[team]} +1 → ${scores.A} - ${scores.B}`);
+      checkGameStatus();
+    }
+
+    function subtractScore(team) {
+      if (gameOver) return;
+      if (scores[team] <= 0) return;
+
+      scores[team]--;
+      updateScoreboard();
+      animateScore(team, true);
+      addToHistory(`${teamNames[team]} -1 → ${scores.A} - ${scores.B}`);
+      checkGameStatus();
+    }
+
+    function updateScoreboard() {
+      document.getElementById("scoreA").textContent = scores.A;
+      document.getElementById("scoreB").textContent = scores.B;
+    }
+
+    function updateSetInfo() {
+      document.getElementById("setNumber").textContent = setNumber;
+      document.getElementById("setsA").textContent = setsWon.A;
+      document.getElementById("setsB").textContent = setsWon.B;
+    }
+
+    function animateScore(team, isSubtract = false) {
+      const scoreElement = document.getElementById(`score${team}`);
+      scoreElement.classList.add("highlight");
+      setTimeout(() => scoreElement.classList.remove("highlight"), 300);
+    }
+
+    function addToHistory(message, type = 'normal') {
+      matchHistory.push({ message, type, timestamp: new Date() });
+      updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+      const historyList = document.querySelector("#history ul");
+      historyList.innerHTML = '';
+      
+      // Display latest 100 entries, newest first
+      const displayHistory = matchHistory.slice(-100).reverse();
+      displayHistory.forEach((entry) => {
+        const li = document.createElement("li");
+        li.textContent = entry.message;
+        
+        if (entry.type === 'winner') {
+          li.classList.add('winner-history');
+        } else if (entry.type === 'deuce') {
+          li.classList.add('deuce-history');
+        } else if (entry.type === 'set') {
+          li.classList.add('set-history');
+        }
+        
+        historyList.appendChild(li);
+      });
+      
+      // Auto scroll to top to show latest
+      const historyContent = document.getElementById('history-content');
+      historyContent.scrollTop = 0;
+    }
+
+    function updateDeuceDisplay() {
+      // Reset all deuce indicators
+      document.getElementById('deuceA').style.display = 'none';
+      document.getElementById('deuceB').style.display = 'none';
+      document.getElementById('teamA').classList.remove('deuce');
+      document.getElementById('teamB').classList.remove('deuce');
+      
+      // Show deuce indicators if in deuce mode
+      if (deuceMode) {
+        document.getElementById('deuceA').style.display = 'block';
+        document.getElementById('deuceB').style.display = 'block';
+        document.getElementById('teamA').classList.add('deuce');
+        document.getElementById('teamB').classList.add('deuce');
+      }
+    }
+
+    function checkGameStatus() {
+      const a = scores.A;
+      const b = scores.B;
+      const diff = Math.abs(a - b);
+
+      // Reset winner highlight
+      document.getElementById('teamA').classList.remove('winner');
+      document.getElementById('teamB').classList.remove('winner');
+
+      // Check for deuce condition (both >= 20)
+      if (a >= 20 && b >= 20) {
+        if (!deuceMode) {
+          deuceMode = true;
+          updateDeuceDisplay();
+          addToHistory('🔥 DEUCE! Butuh selisih 2 poin untuk menang', 'deuce');
+          showNotification('DEUCE! Selisih 2 untuk menang', 'deuce');
+        }
+        
+        // Check for winner in deuce (diff >= 2)
+        if (diff >= 2) {
+          const winner = a > b ? 'A' : 'B';
+          declareSetWinner(winner);
+        } else if (diff === 1) {
+          // Advantage situation
+          const leader = a > b ? teamNames.A : teamNames.B;
+          showNotification(`${leader} ADVANTAGE!`, 'deuce');
+        }
+      } else {
+        // Normal win condition (21+ points with 2+ point lead)
+        if ((a >= 21 || b >= 21) && diff >= 2) {
+          const winner = a > b ? 'A' : 'B';
+          declareSetWinner(winner);
+        }
+      }
+    }
+
+    function declareSetWinner(winner) {
+      gameOver = true;
+      setsWon[winner]++;
+      
+      // Highlight winner
+      document.getElementById(`team${winner}`).classList.add('winner');
+      
+      const finalScore = `${scores.A} - ${scores.B}`;
+      addToHistory(`🏆 Set ${setNumber}: ${teamNames[winner]} menang ${finalScore}`, 'winner');
+      
+      showNotification(`${teamNames[winner]} MENANG SET ${setNumber}!`, 'winner');
+      
+      // Check if match is over (best of 3: 2 sets, best of 5: 3 sets)
+      const maxSets = 2; // Change to 3 for best of 5
+      if (setsWon[winner] >= maxSets) {
+        addToHistory(`🎉 PERTANDINGAN SELESAI! ${teamNames[winner]} menang ${setsWon.A}-${setsWon.B}`, 'winner');
+        showNotification(`${teamNames[winner]} MENANG PERTANDINGAN!`, 'winner');
+      } else {
+        document.getElementById('newSetBtn').style.display = 'inline-block';
+      }
+      
+      updateSetInfo();
+    }
+
+    function newSet() {
+      if (!gameOver) return;
+      
+      setNumber++;
+      scores = { A: 0, B: 0 };
+      gameOver = false;
+      deuceMode = false;
+      
+      // Reset visual states
+      document.getElementById('teamA').classList.remove('winner', 'deuce');
+      document.getElementById('teamB').classList.remove('winner', 'deuce');
+      updateDeuceDisplay();
+      
+      updateScoreboard();
+      updateSetInfo();
+      
+      document.getElementById('newSetBtn').style.display = 'none';
+      
+      addToHistory(`🆕 Set ${setNumber} dimulai`, 'set');
+      showNotification(`Set ${setNumber} dimulai!`);
+    }
+
+    function resetSet() {
+      if (confirm('Reset set saat ini?')) {
+        scores = { A: 0, B: 0 };
+        gameOver = false;
+        deuceMode = false;
+        
+        // Reset visual states
+        document.getElementById('teamA').classList.remove('winner', 'deuce');
+        document.getElementById('teamB').classList.remove('winner', 'deuce');
+        updateDeuceDisplay();
+        
+        updateScoreboard();
+        document.getElementById('newSetBtn').style.display = 'none';
+        
+        addToHistory(`🔄 Set ${setNumber} direset - ${teamNames.A} ${scores.A} - ${scores.B} ${teamNames.B}`, 'set');
+        showNotification('Set direset');
+      }
+    }
+
+    function resetAll() {
+      if (confirm('Reset semua data pertandingan?')) {
+        scores = { A: 0, B: 0 };
+        setNumber = 1;
+        setsWon = { A: 0, B: 0 };
+        gameOver = false;
+        deuceMode = false;
+        matchHistory = [];
+        
+        // Reset visual states
+        document.getElementById('teamA').classList.remove('winner', 'deuce');
+        document.getElementById('teamB').classList.remove('winner', 'deuce');
+        updateDeuceDisplay();
+        
+        updateScoreboard();
+        updateSetInfo();
+        updateHistoryDisplay();
+        
+        document.getElementById('newSetBtn').style.display = 'none';
+        
+        // Go back to setup
+        document.getElementById('setupScreen').style.display = 'flex';
+        document.getElementById('mainScreen').style.display = 'none';
+        document.getElementById('teamAInput').value = '';
+        document.getElementById('teamBInput').value = '';
+        document.getElementById('teamAInput').focus();
+      }
+    }
+
+    function showNotification(message, type = '') {
+      const notif = document.getElementById("notification");
+      notif.textContent = message;
+      notif.className = 'notification';
+      
+      if (type) {
+        notif.classList.add(type);
+      }
+      
+      notif.classList.add("show");
+      setTimeout(() => notif.classList.remove("show"), 3000);
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (document.getElementById('setupScreen').style.display !== 'none') {
+        if (e.key === 'Enter') {
+          startGame();
+        }
+        return;
+      }
+      
+      if (gameOver) return;
+      
+      // Arrow keys for scoring
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        addScore('A');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        addScore('B');
+      }
+      // Shift + Arrow for subtracting
+      else if (e.key === 'ArrowLeft' && e.shiftKey) {
+        e.preventDefault();
+        subtractScore('A');
+      } else if (e.key === 'ArrowRight' && e.shiftKey) {
+        e.preventDefault();
+        subtractScore('B');
+      }
+      // 'R' for reset set
+      else if (e.key === 'r' || e.key === 'R') {
+        resetSet();
+      }
+    });
+
+    // Focus first input on load
+    window.addEventListener('load', function() {
+      document.getElementById('teamAInput').focus();
+    });
+  </script>
+</body>
+</html>
